@@ -21,7 +21,6 @@
       :root {
         --gold: #d4af37;
         --dark: #050505;
-
       }
 
       * {
@@ -633,13 +632,20 @@
         let flipped = [];
         let matched = 0;
         let timeLeft = 60;
+        let timer = null;
 
-        // ⏳ TIMER
-        const timer = setInterval(() => {
+        // Clear any existing timer before starting new one
+        if (window.currentMemoryTimer) {
+          clearInterval(window.currentMemoryTimer);
+        }
+
+        // ⏳ TIMER - UPDATE THIS PART
+        window.currentMemoryTimer = setInterval(() => {
           timeLeft--;
           timerEl.textContent = `⏳ ${timeLeft}s`;
           if (timeLeft <= 0) {
-            clearInterval(timer);
+            clearInterval(window.currentMemoryTimer);
+            window.currentMemoryTimer = null; // Clean reference
             resetGame();
           }
         }, 1000);
@@ -678,7 +684,8 @@
 
                 // 🎉 WIN CONDITION
                 if (matched === icons.length) {
-                  clearInterval(timer);
+                  clearInterval(window.currentMemoryTimer); // 🔧 Clear timer
+                  window.currentMemoryTimer = null;
                   setTimeout(() => {
                     startDialogue(SCRIPT.level1Done, () => {
                       showIntermediateLetter(LOVE_NOTES.afterLevel1, () => {
@@ -727,6 +734,10 @@
       }
 
       function initSnitchGame() {
+        if (window.currentSnitchLoop) {
+          cancelAnimationFrame(window.currentSnitchLoop);
+        }
+
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const rect = canvas.getBoundingClientRect();
@@ -764,6 +775,7 @@
           ctx.restore();
 
           loopId = requestAnimationFrame(update);
+          window.currentSnitchLoop = requestAnimationFrame(update);
         }
 
         const tap = (e) => {
