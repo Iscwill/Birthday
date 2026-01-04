@@ -195,7 +195,7 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        padding-bottom: 200px;
+        padding-bottom: 220px;
       }
 
       #character-layer {
@@ -204,6 +204,14 @@
         left: 0;
         right: 0;
         padding-bottom: env(safe-area-inset-bottom, 0);
+        pointer-events: none; /* Keep this */
+        z-index: 50; /* Keep this */
+      }
+
+      /* Make sure only interactive elements get pointer events */
+      #character-layer .dialogue-box {
+        pointer-events: auto;
+        margin-bottom: 0.5rem; /* Reduce overlap */
       }
 
       .snitch-trail {
@@ -287,7 +295,7 @@
 
       @media (max-height: 700px) {
         .game-container {
-          padding-bottom: 180px;
+          padding-bottom: 200px;
         }
       }
     </style>
