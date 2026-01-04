@@ -610,6 +610,16 @@
         initMemoryGame();
       }
 
+      function resetLevel1() {
+        if (CURRENT_LEVEL !== 1 || GAME_COMPLETED) return;
+        // Clear any existing timer
+        if (window.currentMemoryTimer) {
+          clearInterval(window.currentMemoryTimer);
+          window.currentMemoryTimer = null;
+        }
+        startLevel1();
+      }
+
       function initMemoryGame() {
         const icons = [
           "🍕",
@@ -646,7 +656,7 @@
           if (timeLeft <= 0) {
             clearInterval(window.currentMemoryTimer);
             window.currentMemoryTimer = null; // Clean reference
-            resetGame();
+            resetLevel1();
           }
         }, 1000);
 
@@ -700,11 +710,6 @@
 
           grid.appendChild(card);
         });
-
-        function resetGame() {
-          if (CURRENT_LEVEL !== 1 || GAME_COMPLETED) return;
-          startLevel1();
-        }
       }
 
       // LEVEL 2
