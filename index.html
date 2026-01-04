@@ -418,6 +418,7 @@
       let CURRENT_LEVEL = 0;
       let GAME_COMPLETED = false;
       let GAME_IN_PROGRESS = false;
+      let LETTER_OPEN = false;
 
       const stage = document.getElementById("game-stage");
       const charLayer = document.getElementById("character-layer");
@@ -434,8 +435,12 @@
       function startDialogue(lines, callback) {
         STATE.dialogueQueue = [...lines];
         STATE.onDialogueComplete = callback;
-        charLayer.classList.remove("opacity-0"); // Ensure Owl is back
-        bubbleLayer.classList.remove("opacity-0");
+        // 🔧 UPDATE THIS: Properly show character layer
+        charLayer.classList.remove("hidden");
+        setTimeout(() => {
+          charLayer.classList.remove("opacity-0");
+          bubbleLayer.classList.remove("opacity-0");
+        }, 50);
         advanceDialogue();
       }
 
@@ -529,8 +534,11 @@
 
       // --- INTERMEDIATE LETTER SYSTEM ---
       function showIntermediateLetter(contentData, nextCallback) {
+        if (LETTER_OPEN) return;
+        LETTER_OPEN = true;
         // Hide owl temporarily
         charLayer.classList.add("opacity-0");
+        charLayer.style.zIndex = "0";
 
         stage.innerHTML = `
                 <div class="w-full max-w-md fade-in py-10">
@@ -588,12 +596,23 @@
             btn.onclick = (e) => {
               e.stopPropagation();
 
+              // 🔧 ADD THIS: Disable button immediately to prevent multiple clicks
+              btn.disabled = true;
+              btn.style.opacity = "0.5";
+              btn.style.cursor = "not-allowed";
+
               el.style.opacity = "0";
-              el.style.pointerEvents = "none"; // 🔒 no more clicks
+              el.style.pointerEvents = "none";
 
               setTimeout(() => {
                 stage.innerHTML = "";
-                if (window.nextLevelAction) window.nextLevelAction();
+                charLayer.style.zIndex = "50";
+                if (window.nextLevelAction) {
+                  const callback = window.nextLevelAction;
+                  window.nextLevelAction = null;
+                  LETTER_OPEN = false; // 🔧 ADD THIS: Reset flag before next level
+                  callback();
+                }
               }, 500);
             };
           }
@@ -605,6 +624,11 @@
         if (GAME_COMPLETED || GAME_IN_PROGRESS) return;
         GAME_IN_PROGRESS = true; // 🔧 Lock the game
         CURRENT_LEVEL = 1;
+
+        // 🔧 ADD THIS: Hide character layer during gameplay
+        charLayer.classList.add("opacity-0");
+        setTimeout(() => charLayer.classList.add("hidden"), 1000);
+
         stage.innerHTML = `
             <div class="glass-panel w-full max-w-md h-[480px] rounded-xl overflow-hidden fade-in flex flex-col">
             <div class="p-4 text-center border-b border-yellow-500/30">
@@ -790,8 +814,8 @@
           ctx.fillRect(-25, -5, 50, 10);
           ctx.restore();
 
-          loopId = requestAnimationFrame(update);
           window.currentSnitchLoop = requestAnimationFrame(update);
+          loopId = window.currentSnitchLoop;
         }
 
         const tap = (e) => {
@@ -915,8 +939,12 @@
               }
             }
           };
-          el.onclick = handleInteract;
-          el.ontouchstart = handleInteract;
+          if ("ontouchstart" in window) {
+            el.ontouchstart = handleInteract;
+          } else {
+            el.onclick = handleInteract;
+          }
+
           container.appendChild(el);
         });
         const firstStar = container.querySelectorAll("div.absolute")[0];
