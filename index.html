@@ -409,6 +409,7 @@
 
       let CURRENT_LEVEL = 0;
       let GAME_COMPLETED = false;
+      let GAME_IN_PROGRESS = false;
 
       const stage = document.getElementById("game-stage");
       const charLayer = document.getElementById("character-layer");
@@ -593,7 +594,8 @@
 
       // LEVEL 1
       function startLevel1() {
-        if (GAME_COMPLETED) return;
+        if (GAME_COMPLETED || GAME_IN_PROGRESS) return;
+        GAME_IN_PROGRESS = true; // 🔧 Lock the game
         CURRENT_LEVEL = 1;
         stage.innerHTML = `
             <div class="glass-panel w-full max-w-md h-[480px] rounded-xl overflow-hidden fade-in flex flex-col">
@@ -612,7 +614,7 @@
 
       function resetLevel1() {
         if (CURRENT_LEVEL !== 1 || GAME_COMPLETED) return;
-        // Clear any existing timer
+        GAME_IN_PROGRESS = false; // 🔧 Unlock before reset
         if (window.currentMemoryTimer) {
           clearInterval(window.currentMemoryTimer);
           window.currentMemoryTimer = null;
@@ -694,8 +696,9 @@
 
                 // 🎉 WIN CONDITION
                 if (matched === icons.length) {
-                  clearInterval(window.currentMemoryTimer); // 🔧 Clear timer
+                  clearInterval(window.currentMemoryTimer);
                   window.currentMemoryTimer = null;
+                  GAME_IN_PROGRESS = false; // 🔧 Unlock before transition
                   setTimeout(() => {
                     startDialogue(SCRIPT.level1Done, () => {
                       showIntermediateLetter(LOVE_NOTES.afterLevel1, () => {
